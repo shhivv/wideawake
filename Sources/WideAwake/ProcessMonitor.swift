@@ -1,18 +1,16 @@
-import AppKit
+import Dispatch
 import Darwin
 
 struct DetectedAgents: Equatable {
     var claudeCLI = false
-    var claudeDesktop = false
     var codexCLI = false
 
     var anyCLI: Bool { claudeCLI || codexCLI }
-    var any: Bool { claudeCLI || claudeDesktop || codexCLI }
+    var any: Bool { anyCLI }
 
     var names: [String] {
         var result: [String] = []
         if claudeCLI { result.append("Claude Code") }
-        if claudeDesktop { result.append("Claude Desktop") }
         if codexCLI { result.append("Codex") }
         return result
     }
@@ -23,18 +21,9 @@ final class ProcessMonitor {
     private(set) var current = DetectedAgents()
     private var timer: DispatchSourceTimer?
 
-    private static let claudeDesktopBundleID = "com.anthropic.claudefordesktop"
     private static let maxPathSize: Int = 4 * Int(MAXPATHLEN)
 
     func startMonitoring() {
-        let center = NSWorkspace.shared.notificationCenter
-        center.addObserver(
-            self, selector: #selector(appEvent),
-            name: NSWorkspace.didLaunchApplicationNotification, object: nil)
-        center.addObserver(
-            self, selector: #selector(appEvent),
-            name: NSWorkspace.didTerminateApplicationNotification, object: nil)
-
         let timer = DispatchSource.makeTimerSource(queue: .main)
         timer.schedule(deadline: .now(), repeating: .seconds(3))
         timer.setEventHandler { [weak self] in self?.poll() }
@@ -45,19 +34,10 @@ final class ProcessMonitor {
     func stopMonitoring() {
         timer?.cancel()
         timer = nil
-        NSWorkspace.shared.notificationCenter.removeObserver(self)
-    }
-
-    @objc private func appEvent(_ notification: Notification) {
-        poll()
     }
 
     private func poll() {
         var agents = DetectedAgents()
-
-        agents.claudeDesktop = NSWorkspace.shared.runningApplications.contains {
-            $0.bundleIdentifier == Self.claudeDesktopBundleID
-        }
 
         let cliFound = findCLIProcesses(["claude", "codex"])
         agents.claudeCLI = cliFound.contains("claude")
