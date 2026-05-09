@@ -5,3 +5,4 @@ WideAwake.zip
 *.xcodeproj
 *.xcworkspace
 .DS_Store
+.claude
