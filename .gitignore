@@ -1,0 +1,7 @@
+.build/
+.swiftpm/
+WideAwake.app/
+WideAwake.zip
+*.xcodeproj
+*.xcworkspace
+.DS_Store
