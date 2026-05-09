@@ -171,33 +171,59 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         for name in agents.names {
             let item = NSMenuItem()
-            item.title = "  \u{25CF} \(name)"
+            item.title = "\u{25CF} \(name)"
+            item.indentationLevel = 1
             item.isEnabled = false
             menu.addItem(item)
         }
 
         menu.addItem(NSMenuItem.separator())
 
+        // Idle Sleep section
+        let idleHeader = NSMenuItem()
+        idleHeader.title = "Idle Sleep"
+        idleHeader.isEnabled = false
+        menu.addItem(idleHeader)
+
+        let keepAwake = NSMenuItem(
+            title: "Keep Awake",
+            action: #selector(toggleIdleSleep), keyEquivalent: "")
+        keepAwake.target = self
+        keepAwake.indentationLevel = 1
+        keepAwake.state = sleepManager.isActive ? .on : .off
+        menu.addItem(keepAwake)
+
+        let autoIdle = NSMenuItem(
+            title: "When Agents Detected",
+            action: #selector(toggleAuto), keyEquivalent: "")
+        autoIdle.target = self
+        autoIdle.indentationLevel = 1
+        autoIdle.state = autoActivate ? .on : .off
+        menu.addItem(autoIdle)
+
+        // Lid Sleep section
+        let lidHeader = NSMenuItem()
+        lidHeader.title = "Lid Sleep"
+        lidHeader.isEnabled = false
+        menu.addItem(lidHeader)
+
         let lid = NSMenuItem(
             title: "Prevent Lid Sleep",
             action: #selector(toggleLidSleep), keyEquivalent: "")
         lid.target = self
+        lid.indentationLevel = 1
         lid.state = sleepManager.lidSleepDisabled ? .on : .off
         menu.addItem(lid)
 
         let autoLid = NSMenuItem(
-            title: "Lid Sleep Automatically",
+            title: "When Agents Detected",
             action: #selector(toggleAutoLidSleep), keyEquivalent: "")
         autoLid.target = self
+        autoLid.indentationLevel = 1
         autoLid.state = autoLidSleep ? .on : .off
         menu.addItem(autoLid)
 
-        let auto = NSMenuItem(
-            title: "Activate Automatically",
-            action: #selector(toggleAuto), keyEquivalent: "")
-        auto.target = self
-        auto.state = autoActivate ? .on : .off
-        menu.addItem(auto)
+        menu.addItem(NSMenuItem.separator())
 
         let login = NSMenuItem(
             title: "Start at Login",
@@ -218,6 +244,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     // MARK: - Actions
+
+    @objc private func toggleIdleSleep() {
+        if sleepManager.isActive {
+            deactivate()
+        } else {
+            activate()
+        }
+        rebuildMenu()
+    }
 
     @objc private func toggleLidSleep() {
         if sleepManager.lidSleepDisabled {
