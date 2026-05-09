@@ -15,7 +15,7 @@ WideAwake monitors for **Claude Code** and **Codex**. When it detects an agent, 
 ## Install
 
 ```bash
-curl -sL https://raw.githubusercontent.com/shhivv/wideawake/main/install.sh | bash
+curl -sL https://raw.githubusercontent.com/shhivv/wideawake/master/install.sh | bash
 ```
 
 ### From Source
