@@ -78,14 +78,34 @@ final class SleepManager {
     private func ensureSudoersRule() {
         guard !FileManager.default.fileExists(atPath: Self.sudoersPath) else { return }
 
-        let rule = "%admin ALL=(root) NOPASSWD: /usr/bin/pmset -a disablesleep 0, /usr/bin/pmset -a disablesleep 1\n"
-        let tmpPath = NSTemporaryDirectory() + "wideawake-sudoers"
-        guard FileManager.default.createFile(atPath: tmpPath, contents: rule.data(using: .utf8)) else {
+        let user = NSUserName()
+        guard !user.isEmpty,
+              user.unicodeScalars.allSatisfy({
+                  CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_.")).contains($0)
+              }) else { return }
+
+        let rule = "\(user) ALL=(root) NOPASSWD: /usr/bin/pmset -a disablesleep 0, /usr/bin/pmset -a disablesleep 1\n"
+        let tmpPath = (NSTemporaryDirectory() as NSString)
+            .appendingPathComponent("wideawake-\(UUID().uuidString)")
+
+        guard tmpPath.unicodeScalars.allSatisfy({
+            CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "/-_.")).contains($0)
+        }) else { return }
+
+        let fd = open(tmpPath, O_WRONLY | O_CREAT | O_EXCL, 0o440)
+        guard fd >= 0 else { return }
+
+        let data = Data(rule.utf8)
+        let written = data.withUnsafeBytes { write(fd, $0.baseAddress!, $0.count) }
+        close(fd)
+
+        guard written == data.count else {
+            unlink(tmpPath)
             return
         }
-        defer { try? FileManager.default.removeItem(atPath: tmpPath) }
+        defer { unlink(tmpPath) }
 
-        let cmd = "cp '\(tmpPath)' \(Self.sudoersPath) && chmod 0440 \(Self.sudoersPath)"
+        let cmd = "/usr/sbin/visudo -c -f '\(tmpPath)' && /bin/cp '\(tmpPath)' '\(Self.sudoersPath)' && /bin/chmod 0440 '\(Self.sudoersPath)'"
         guard let script = NSAppleScript(source:
             "do shell script \"\(cmd)\" with administrator privileges"
         ) else { return }
