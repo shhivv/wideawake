@@ -1,4 +1,5 @@
 import AppKit
+import ServiceManagement
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
@@ -193,6 +194,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         auto.state = autoActivate ? .on : .off
         menu.addItem(auto)
 
+        let login = NSMenuItem(
+            title: "Start at Login",
+            action: #selector(toggleLoginItem), keyEquivalent: "")
+        login.target = self
+        login.state = SMAppService.mainApp.status == .enabled ? .on : .off
+        menu.addItem(login)
+
         menu.addItem(NSMenuItem.separator())
 
         let quit = NSMenuItem(
@@ -236,6 +244,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } else if !autoActivate && sleepManager.isActive {
             deactivate()
         }
+        rebuildMenu()
+    }
+
+    @objc private func toggleLoginItem() {
+        do {
+            if SMAppService.mainApp.status == .enabled {
+                try SMAppService.mainApp.unregister()
+            } else {
+                try SMAppService.mainApp.register()
+            }
+        } catch {}
         rebuildMenu()
     }
 
