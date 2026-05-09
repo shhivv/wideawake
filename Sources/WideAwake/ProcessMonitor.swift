@@ -4,14 +4,16 @@ import Darwin
 struct DetectedAgents: Equatable {
     var claudeCLI = false
     var codexCLI = false
+    var opencodeCLI = false
 
-    var anyCLI: Bool { claudeCLI || codexCLI }
+    var anyCLI: Bool { claudeCLI || codexCLI || opencodeCLI }
     var any: Bool { anyCLI }
 
     var names: [String] {
         var result: [String] = []
         if claudeCLI { result.append("Claude Code") }
         if codexCLI { result.append("Codex") }
+        if opencodeCLI { result.append("OpenCode") }
         return result
     }
 }
@@ -39,9 +41,10 @@ final class ProcessMonitor {
     private func poll() {
         var agents = DetectedAgents()
 
-        let cliFound = findCLIProcesses(["claude", "codex"])
+        let cliFound = findCLIProcesses(["claude", "codex", "opencode"])
         agents.claudeCLI = cliFound.contains("claude")
         agents.codexCLI = cliFound.contains("codex")
+        agents.opencodeCLI = cliFound.contains("opencode")
 
         guard agents != current else { return }
         current = agents

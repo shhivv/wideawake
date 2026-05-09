@@ -20,7 +20,7 @@ macOS menu bar utility (no dock icon, `LSUIElement`) that prevents idle sleep wh
 
 ### Core Components
 
-- **ProcessMonitor** — Detects running AI agents via `libproc` (`proc_pidpath`) polling every 3s for CLI tools (`claude`, `codex`). Must use `proc_pidpath` because Claude Code rewrites its process name to the version string at runtime, making `pgrep` unreliable.
+- **ProcessMonitor** — Detects running AI agents via `libproc` (`proc_pidpath`) polling every 3s for CLI tools (`claude`, `codex`, `opencode`). Must use `proc_pidpath` because Claude Code rewrites its process name to the version string at runtime, making `pgrep` unreliable.
 - **SleepManager** — Wraps `IOPMAssertionCreateWithName` (IOKit) to create/release `NoIdleSleepAssertion`. Assertions auto-release if the app crashes.
 - **AppDelegate** — Orchestrates everything: NSStatusItem (eye icon), menu, alert on first detection, auto-activate preference via UserDefaults.
 
