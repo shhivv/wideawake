@@ -6,3 +6,4 @@ WideAwake.zip
 *.xcworkspace
 .DS_Store
 .claude
+scripts/

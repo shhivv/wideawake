@@ -23,6 +23,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         updateIcon()
         rebuildMenu()
 
+        if !UserDefaults.standard.bool(forKey: "hasLaunchedBefore") {
+            UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
+            try? SMAppService.mainApp.register()
+        }
+
         processMonitor.onStateChange = { [weak self] agents in
             self?.handleAgentChange(agents)
         }
